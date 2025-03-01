@@ -1,0 +1,11 @@
+spring:
+  application:
+    name:
+      chatService
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: chatuser
+    password: chatuser
+server:
+  port: 8080

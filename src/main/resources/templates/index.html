@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/chat.css" />
+
+    <!-- SockJS & Stomp.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 채팅방 ID 입력 폼 (입장 전 보임, 입장 후 숨김) -->
+        <div id="roomSelection" class="p-3 text-center">
+            <h4>실시간 채팅</h4>
+            <label for="roomIdInput" class="form-label">채팅방 ID 입력:</label>
+            <input type="text" id="roomIdInput" class="form-control mb-2" placeholder="채팅방 ID를 입력하세요" required>
+            <button class="btn btn-primary w-100" onclick="joinRoom()">채팅방 입장</button>
+        </div>
+
+        <!-- 채팅 UI (입장 후 표시됨) -->
+        <div id="chatContainer" class="chat-container">
+            <!-- 채팅방 정보 -->
+            <div class="p-3 bg-primary text-white text-center">
+                <h4 id="chatRoomTitle"></h4>
+            </div>
+
+            <!-- 채팅 메시지 -->
+            <div class="chat-messages d-flex flex-column" id="chatMessages"></div>
+
+            <!-- 메시지 입력 폼 -->
+            <div class="p-3">
+                <form id="chatForm" class="d-flex">
+                    <label for="messageInput" class="visually-hidden">메시지 입력</label>
+                    <input type="text" id="messageInput" class="form-control me-2" placeholder="메시지를 입력하세요" required>
+                    <button type="submit" class="btn btn-success">전송</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let sender = "User" + Math.floor(Math.random() * 10000);
+        let roomId = "";
+
+        function joinRoom() {
+            const roomInput = document.getElementById("roomIdInput").value.trim();
+            if (roomInput === "") {
+                alert("채팅방 ID를 입력하세요");
+                return;
+            }
+            roomId = roomInput;
+            connectWebSocket();
+
+            // UI 변경: 채팅방 ID 입력 폼 숨기고, 채팅창 보이기
+            document.getElementById("roomSelection").style.display = "none";
+            document.getElementById("chatContainer").style.display = "block";
+            document.getElementById("chatRoomTitle").textContent = `채팅방 ID: ${roomId}`;
+        }
+
+        function connectWebSocket() {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function () {
+                console.log("Connected to WebSocket");
+
+                // 메시지 전송 기능 활성화
+                const form = document.getElementById("chatForm");
+                form.addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    sendMessage();
+                });
+
+                // 구독 (채팅방 ID 기반)
+                stompClient.subscribe(`/topic/${roomId}`, function (message) {
+                    const messageData = JSON.parse(message.body);
+
+                    if (messageData.sender !== sender) {
+                        displayMessage(messageData.sender, messageData.message, false);
+                    }
+                });
+            });
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById("messageInput");
+            const messageText = messageInput.value.trim();
+
+            if (messageText === "" || roomId === "") {
+                return;
+            }
+
+            const chatMessage = {
+                sender: sender,
+                roomId: roomId,
+                message: messageText
+            };
+
+            stompClient.send("/app/send", {}, JSON.stringify(chatMessage));
+            displayMessage(sender, messageText, true);
+            messageInput.value = "";
+        }
+
+        function displayMessage(senderName, messageText, isSentByMe) {
+            const chatMessages = document.getElementById("chatMessages");
+
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            messageDiv.classList.add(isSentByMe ? "sent" : "received");
+
+            const senderDiv = document.createElement("div");
+            senderDiv.classList.add("sender");
+            senderDiv.textContent = senderName;
+
+            messageDiv.appendChild(senderDiv);
+            messageDiv.appendChild(document.createTextNode(messageText));
+            chatMessages.appendChild(messageDiv);
+
+            // 자동 스크롤
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
