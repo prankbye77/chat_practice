@@ -1,4 +1,4 @@
-package kr.co.openprogramming.chat.config;
+package kr.co.openprogramming.chat.config.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
