@@ -9,7 +9,11 @@ body {
     border-radius: 10px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    display: none; /* 초기 상태에서 숨김 */
+}
+
+.system-message {
+    font-style: italic;
+    font-size: 0.9rem;
 }
 
 .chat-messages {
