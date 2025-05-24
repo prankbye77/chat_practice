@@ -1,5 +1,9 @@
 package kr.co.openprogramming.chat.config.rabbitmq;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RabbitConstants {
 
     public static final String EXCHANGE_NAME = "chat.exchange";

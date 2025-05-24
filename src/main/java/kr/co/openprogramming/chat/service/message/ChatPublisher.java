@@ -20,7 +20,7 @@ public class ChatPublisher {
 
     public void publish(ChatMessageDto chatMessageDto) {
         try {
-            String routingKey = PREFIX_ROUTING_KEY + chatMessageDto.getRoomId();
+            String routingKey = PREFIX_ROUTING_KEY + chatMessageDto.roomId();
             String messageJson = OBJECT_MAPPER.writeValueAsString(chatMessageDto);
             rabbitTemplate.convertAndSend(EXCHANGE_NAME, routingKey, messageJson);
             log.info("Message published to [{}]: {}", routingKey, messageJson);

@@ -22,7 +22,7 @@ public class ChatSubscriber {
     public void subscribe(String message) {
         try {
             ChatMessageDto chatMessage = OBJECT_MAPPER.readValue(message, ChatMessageDto.class);
-            String destination = "/topic/" + chatMessage.getRoomId();
+            String destination = "/topic/" + chatMessage.roomId();
             simpMessagingTemplate.convertAndSend(destination, chatMessage);
             log.info("Message delivered to [{}]: {}", destination, chatMessage);
         } catch (JsonProcessingException e) {
